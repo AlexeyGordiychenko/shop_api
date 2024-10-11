@@ -1,0 +1,10 @@
+fastapi==0.111.0
+pydantic==2.9.2
+uvicorn[standard]==0.31.1
+sqlmodel==0.0.22
+asyncpg==0.29.0
+SQLAlchemy==2.0.35
+uuid7==0.1.0
+pydantic-settings==2.5.2
+pydantic-extra-types==2.9.0
+alembic==1.13.3

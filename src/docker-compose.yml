@@ -1,0 +1,88 @@
+x-postgres-base: &postgres-base
+  image: postgres
+  restart: always
+  healthcheck:
+    test:
+      - CMD-SHELL
+      - pg_isready -U postgres
+    interval: 3s
+    timeout: 3s
+    retries: 5
+    
+x-app-base: &app-base
+  build:
+    context: .
+    dockerfile: Dockerfile
+
+services:
+  postgres-dev:
+    profiles: ["dev"]
+    <<: *postgres-base
+    env_file: ".env"
+    environment:
+      - PGPORT=${DB_PORT:-5432}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - ${DB_PORT:-5432}:${DB_PORT:-5432}
+    expose:
+      - ${DB_PORT:-5432}
+    volumes:
+      - pgdata-dev:/var/lib/postgresql/data
+    networks:
+      - dev
+
+  app-dev:
+    profiles: ["dev"]
+    <<: *app-base
+    entrypoint: ["scripts/start-dev.sh"]
+    build:
+      target: app
+    env_file: ".env"
+    environment:
+      - DB_HOST=postgres-dev
+    volumes:
+      - ./shopAPI/:/shopAPI/shopAPI
+    ports:
+      - ${APP_PORT:-8000}:${APP_PORT:-8000}
+    expose:
+      - ${APP_PORT:-8000}
+    depends_on:
+      postgres-dev:
+        condition: service_healthy
+    networks:
+      - dev
+
+  postgres-test:
+    profiles: ["test"]
+    <<: *postgres-base
+    env_file: ".env"
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    networks:
+      - test
+
+  app-test:
+    profiles: ["test"]
+    <<: *app-base
+    entrypoint: ["scripts/start-test.sh"]
+    build:
+      args:
+        ENV: test
+      target: test
+    env_file: ".env_test"
+    volumes:
+      - ./tests/htmlcov:/shopAPI/tests/htmlcov
+    environment:
+      - DB_HOST=postgres-test
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    networks:
+      - test
+      
+volumes:
+  pgdata-dev:
+
+networks:
+  test:
+  dev:
