@@ -204,3 +204,15 @@ class BaseCRUD(Generic[ModelType]):
         """
 
         return schema.model_dump(exclude=excludes, exclude_unset=True)
+
+
+class ProductCRUD(BaseCRUD[Product]):
+    """
+    CRUD for the product model.
+    """
+
+    def __init__(
+        self,
+        session: AsyncSession = Depends(get_session),
+    ):
+        super().__init__(model=Product, session=session)
