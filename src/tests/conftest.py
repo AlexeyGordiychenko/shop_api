@@ -30,3 +30,16 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
         await connection.rollback()
 
     await database.engine.dispose()
+
+
+@pytest.fixture(scope="function")
+def product_payloads(request: pytest.FixtureRequest) -> List[dict]:
+    return [
+        {
+            "name": f"test_name_{i}",
+            "description": f"test_description_{i}",
+            "price": round(random.uniform(0, 1000), 2),
+            "amount": random.randint(0, 1000),
+        }
+        for i in range(request.param)
+    ]
