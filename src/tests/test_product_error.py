@@ -63,13 +63,16 @@ async def test_get_all_products_offset_limit(client: AsyncClient, params: dict) 
 
 
 @pytest.mark.asyncio
-async def test_put_product_incorrect_uuid(client: AsyncClient) -> None:
-    response_put = await client.put("products/123", json={"name": "test"})
+@pytest.mark.parametrize("product_payloads", [1], indirect=True)
+async def test_put_product_incorrect_uuid(
+    client: AsyncClient, product_payloads: List[dict]
+) -> None:
+    response_put = await client.put("products/123", json=product_payloads[0])
     await utils.check_422_error(response_put, "id")
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("product_payloads", [1], indirect=True)
+@pytest.mark.parametrize("product_payloads", [2], indirect=True)
 @pytest.mark.parametrize(
     "invalid_field",
     [{"price": "text_price"}, {"amount": "text_amount"}],
@@ -77,12 +80,38 @@ async def test_put_product_incorrect_uuid(client: AsyncClient) -> None:
 async def test_put_product_invalid_field(
     client: AsyncClient, product_payloads: List[dict], invalid_field: dict
 ) -> None:
+    updated_product = product_payloads.pop()
+    updated_product.update(invalid_field)
     await utils.create_entities(client, "products", product_payloads)
     created_product = product_payloads[0]
     response_put = await client.put(
-        f"products/{created_product['id']}", json=invalid_field
+        f"products/{created_product['id']}", json=updated_product
     )
     await utils.check_422_error(response_put, next(iter(invalid_field)))
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("product_payloads", [2], indirect=True)
+@pytest.mark.parametrize(
+    "field",
+    (
+        "name",
+        "description",
+        "price",
+        "amount",
+    ),
+)
+async def test_put_product_fields_absence(
+    client: AsyncClient, product_payloads: List[dict], field: str
+) -> None:
+    updated_product = product_payloads.pop()
+    updated_product.pop(field)
+    await utils.create_entities(client, "products", product_payloads)
+    created_product = product_payloads[0]
+    response_put = await client.put(
+        f"products/{created_product['id']}", json=updated_product
+    )
+    await utils.check_422_error(response_put, field)
 
 
 @pytest.mark.asyncio

@@ -69,32 +69,6 @@ async def test_put_product(
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("product_payloads", [1], indirect=True)
-@pytest.mark.parametrize(
-    "update",
-    [
-        {"name": "new_name"},
-        {"description": "new_description"},
-        {"price": 1069.33},
-        {"amount": 42},
-    ],
-)
-async def test_patch_client_field(
-    client: AsyncClient,
-    product_payloads: List[dict],
-    update: dict,
-    db_session: AsyncSession,
-) -> None:
-    await utils.create_entities(client, "products", product_payloads)
-    created_product = product_payloads[0]
-    response_put = await client.put(f"products/{created_product['id']}", json=update)
-    created_product.update(update)
-    assert response_put.status_code == 200
-    assert response_put.json() == created_product
-    await utils.compare_db_product_to_payload(created_product, db_session)
-
-
-@pytest.mark.asyncio
 @pytest.mark.parametrize("product_payloads", [1, 2], indirect=True)
 async def test_delete_product(
     client: AsyncClient,

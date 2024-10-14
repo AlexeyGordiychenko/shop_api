@@ -56,12 +56,18 @@ class ProductCreate(ProductBase):
 
 
 class ProductUpdate(ProductBase):
-    name: Optional[str] = Field(None, **field_example("Updated product"))
-    description: Optional[str] = Field(
-        None, **field_example("A simple updated product")
-    )
-    price: Optional[float] = Field(None, **field_example(256.99))
-    amount: Optional[int] = Field(None, **field_example(200))
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "name": "Updated product",
+                    "description": "A simple updated product",
+                    "price": 256.99,
+                    "amount": 200,
+                }
+            ]
+        }
+    }
 
 
 class ProductResponse(ProductBase):
