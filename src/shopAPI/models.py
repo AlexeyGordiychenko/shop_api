@@ -1,7 +1,9 @@
-from typing import Any, Dict, Optional
+from datetime import datetime
+import enum
+from typing import Any, Dict
 from uuid import UUID
 from pydantic import ConfigDict
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel, Column, Enum
 from shopAPI.database import IdMixin
 
 
@@ -49,6 +51,7 @@ class ProductBase(SQLModel):
 
 class Product(IdMixin, ProductBase, table=True):
     __tablename__ = "product"
+    order_items: list["OrderItem"] = Relationship(back_populates="product")
 
 
 class ProductCreate(ProductBase):
@@ -73,3 +76,82 @@ class ProductUpdate(ProductBase):
 
 class ProductResponse(ProductBase):
     id: UUID
+
+
+class ProductResponseInOrderItem(ProductResponse):
+    description: str = Field(exclude=True)
+    amount: int = Field(exclude=True)
+
+
+class OrderStatus(str, enum.Enum):
+    created = "created"
+    processing = "processing"
+    shipped = "shipped"
+    delivered = "delivered"
+    canceled = "canceled"
+
+
+class OrderBase(SQLModel):
+    creation_date: datetime = Field(
+        default_factory=datetime.now,
+        **field_example(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+    )
+    status: OrderStatus = Field(
+        sa_column=Column(Enum(OrderStatus), nullable=False),
+        **field_example("created"),
+    )
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class Order(IdMixin, OrderBase, table=True):
+    __tablename__ = "order"
+    order_items: list["OrderItem"] = Relationship(
+        sa_relationship_kwargs={"cascade": "all"}, back_populates="order"
+    )
+
+    def __init__(self, **kwargs):
+        order_items = kwargs.pop("order_items", [])
+        super().__init__(**kwargs)
+        self.order_items = [OrderItem(**order_item) for order_item in order_items]
+
+
+class OrderCreate(OrderBase):
+    order_items: list["OrderItemCreate"] = Field(min_length=1)
+
+
+class OrderStatusUpdate(SQLModel):
+    status: OrderStatus
+
+
+class OrderResponse(OrderBase):
+    id: UUID
+
+
+class OrderResponseWithItems(OrderBase):
+    id: UUID
+    order_items: list["OrderItemResponse"] | None = None
+
+
+class OrderItemBase(SQLModel):
+    amount: int = Field(nullable=False, **field_example(5))
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class OrderItem(IdMixin, OrderItemBase, table=True):
+    __tablename__ = "order_item"
+
+    order_id: UUID | None = Field(foreign_key="order.id")
+    order: Order | None = Relationship(back_populates="order_items")
+
+    product_id: UUID | None = Field(foreign_key="product.id")
+    product: Product | None = Relationship(back_populates="order_items")
+
+
+class OrderItemCreate(OrderItemBase):
+    product_id: UUID
+
+
+class OrderItemResponse(OrderItemBase):
+    product: ProductResponseInOrderItem
