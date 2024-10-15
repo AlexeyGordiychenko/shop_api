@@ -56,8 +56,9 @@ class ProductCreate(ProductBase):
 
 
 class ProductUpdate(ProductBase):
-    model_config = {
-        "json_schema_extra": {
+    # TODO check examples with https://fastapi.tiangolo.com/tutorial/schema-extra-example/#body-with-examples
+    model_config = ConfigDict(
+        json_schema_extra={
             "examples": [
                 {
                     "name": "Updated product",
@@ -67,7 +68,7 @@ class ProductUpdate(ProductBase):
                 }
             ]
         }
-    }
+    )
 
 
 class ProductResponse(ProductBase):
