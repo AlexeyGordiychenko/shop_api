@@ -73,7 +73,7 @@ class BaseCRUD(Generic[ModelType]):
         db_obj = await self.get_by(field="id", value=id, join_=join_, unique=True)
         if not db_obj:
             raise HTTPException(
-                status_code=404, detail=f"{self.model_class.__name__} not found"
+                status_code=404, detail=f"{self.model_class.__name__} {id} not found"
             )
 
         return db_obj
