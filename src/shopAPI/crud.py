@@ -75,10 +75,11 @@ class BaseCRUD(Generic[ModelType]):
             raise HTTPException(
                 status_code=404, detail=f"{self.model_class.__name__} {id} not found"
             )
-
         return db_obj
 
-    async def get_all(self, offset: int, limit: int) -> List[ModelType] | None:
+    async def get_all(
+        self, offset: int, limit: int, join_: set[str] | None = None
+    ) -> List[ModelType] | None:
         """
         Returns all model instances.
 
@@ -86,7 +87,7 @@ class BaseCRUD(Generic[ModelType]):
         :param limit: The number of items to return.
         :return: The list of model instances.
         """
-        return await self._all(self._query().offset(offset).limit(limit))
+        return await self._all(self._query(join_).offset(offset).limit(limit))
 
     @Transactional()
     async def update(self, model: ModelType, model_update: ModelType) -> ModelType:
