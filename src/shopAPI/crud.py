@@ -6,10 +6,11 @@ from sqlmodel import SQLModel
 from sqlalchemy import Select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import select
+from sqlalchemy.orm import selectinload
 from functools import reduce
 
 from shopAPI.database import Transactional, get_session
-from shopAPI.models import Product
+from shopAPI.models import Order, OrderItem, Product
 
 ModelType = TypeVar("ModelType", bound=SQLModel)
 
@@ -217,3 +218,29 @@ class ProductCRUD(BaseCRUD[Product]):
         session: AsyncSession = Depends(get_session),
     ):
         super().__init__(model=Product, session=session)
+
+
+class OrderCRUD(BaseCRUD[Order]):
+    """
+    CRUD for the order model.
+    """
+
+    def __init__(self, session: AsyncSession = Depends(get_session)):
+        super().__init__(model=Order, session=session)
+
+    async def get_by_id(self, id: UUID) -> ModelType:
+        return await super().get_by_id(id=id, join_={"order_item"})
+
+    async def get_all(self, offset: int, limit: int) -> List[ModelType]:
+        return await super().get_all(offset=offset, limit=limit, join_={"order_item"})
+
+    def _join_order_item(self, query: Select) -> Select:
+        """
+        Joins order_item table.
+
+        :param query: The query to join.
+        :return: Query.
+        """
+        return query.options(
+            selectinload(Order.order_items).selectinload(OrderItem.product)
+        )
