@@ -1,7 +1,10 @@
 from typing import List
-from uuid import UUID
 from fastapi import APIRouter, Depends, Query, status
+
+from shopAPI.crud import OrderCRUD
+from shopAPI.dependencies import valid_order_id
 from shopAPI.models import (
+    Order,
     OrderCreate,
     OrderResponse,
     OrderResponseWithItems,
@@ -9,7 +12,6 @@ from shopAPI.models import (
     OrderStatusUpdate,
     ResponseMessage,
 )
-from shopAPI.crud import OrderCRUD
 
 router = APIRouter(
     prefix="/orders",
@@ -49,8 +51,10 @@ async def get_orders_all(
     response_model=OrderResponseWithItems,
     responses={404: {"model": ResponseMessage}},
 )
-async def get_order(id: UUID, crud: OrderCRUD = Depends()) -> OrderResponseWithItems:
-    return await crud.get_by_id(id=id)
+async def get_order(
+    order: Order = Depends(valid_order_id), crud: OrderCRUD = Depends()
+) -> OrderResponseWithItems:
+    return order
 
 
 @router.patch(
@@ -58,14 +62,13 @@ async def get_order(id: UUID, crud: OrderCRUD = Depends()) -> OrderResponseWithI
     summary="Update order's status.",
     status_code=status.HTTP_200_OK,
     response_model=OrderResponse,
+    responses={404: {"model": ResponseMessage}},
 )
 async def update_order_status(
-    id: UUID,
     status: OrderStatus = Query(
         description="New status.", examples=OrderStatus.shipped
     ),
+    order: Order = Depends(valid_order_id),
     crud: OrderCRUD = Depends(),
 ) -> OrderResponse:
-    return await crud.update(
-        await crud.get_by_id(id=id), OrderStatusUpdate(status=status)
-    )
+    return await crud.update(order, OrderStatusUpdate(status=status))

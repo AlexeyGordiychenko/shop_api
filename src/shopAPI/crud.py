@@ -1,6 +1,6 @@
 from typing import Any, Generic, List, Type, TypeVar
 from uuid import UUID
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from pydantic import BaseModel
 from sqlmodel import SQLModel
 from sqlalchemy import Select
