@@ -37,31 +37,6 @@ class BaseCRUD(Generic[ModelType]):
         self.session.add(model)
         return model
 
-    async def get_by(
-        self,
-        field: str,
-        value: Any,
-        join_: set[str] | None = None,
-        unique: bool = False,
-    ) -> ModelType:
-        """
-        Returns the model instance matching the field and value.
-
-        :param field: The field to match.
-        :param value: The value to match.
-        :param join_: The joins to make.
-        :param unique: Whether to return a unique instance.
-        :return: The model instance.
-        """
-        query = self._query(join_)
-        query = await self._get_by(query, field, value)
-        if unique:
-            return await self._one_or_none(query)
-        elif join_ is not None:
-            return await self._all_unique(query)
-        else:
-            return await self._all(query)
-
     async def get_by_id(self, id: UUID, join_: set[str] | None = None) -> ModelType:
         """
         Returns the model instance matching the id.
@@ -70,8 +45,7 @@ class BaseCRUD(Generic[ModelType]):
         :param join_: The joins to make.
         :return: The model instance.
         """
-
-        db_obj = await self.get_by(field="id", value=id, join_=join_, unique=True)
+        db_obj = await self._one_or_none(self._where(self._query(join_), "id", id))
         if not db_obj:
             raise HTTPException(
                 status_code=404, detail=f"{self.model_class.__name__} {id} not found"
@@ -137,16 +111,6 @@ class BaseCRUD(Generic[ModelType]):
         query = await self.session.scalars(query)
         return query.all()
 
-    async def _all_unique(self, query: Select) -> list[ModelType]:
-        """
-        Returns all unique results from the query
-
-        :param query: The query to execute.
-        :return: A list of unique model instances.
-        """
-        result = await self.session.execute(query)
-        return result.unique().scalars().all()
-
     async def _one_or_none(self, query: Select) -> ModelType | None:
         """Returns the first result from the query or None.
 
@@ -156,7 +120,7 @@ class BaseCRUD(Generic[ModelType]):
         query = await self.session.scalars(query)
         return query.one_or_none()
 
-    async def _get_by(self, query: Select, field: str, value: Any) -> Select:
+    def _where(self, query: Select, field: str, value: Any) -> Select:
         """
         Returns the query filtered by the given column.
 
