@@ -1,14 +1,15 @@
 from typing import List, Optional
-from uuid import UUID
 from fastapi import APIRouter, Query, status, Depends
 
+from shopAPI.crud import ProductCRUD
+from shopAPI.dependencies import valid_product_id
 from shopAPI.models import (
+    Product,
     ProductCreate,
     ProductResponse,
     ProductUpdate,
     ResponseMessage,
 )
-from shopAPI.crud import ProductCRUD
 
 router = APIRouter(
     prefix="/products",
@@ -49,8 +50,8 @@ async def get_products_all(
     response_model=ProductResponse,
     responses={404: {"model": ResponseMessage}},
 )
-async def get_product(id: UUID, crud: ProductCRUD = Depends()) -> ProductResponse:
-    return await crud.get_by_id(id=id)
+async def get_product(product: Product = Depends(valid_product_id)) -> ProductResponse:
+    return product
 
 
 @router.put(
@@ -58,13 +59,14 @@ async def get_product(id: UUID, crud: ProductCRUD = Depends()) -> ProductRespons
     summary="Update a product.",
     status_code=status.HTTP_200_OK,
     response_model=ProductResponse,
+    responses={404: {"model": ResponseMessage}},
 )
 async def update_product(
-    id: UUID,
     data: ProductUpdate,
+    product: Product = Depends(valid_product_id),
     crud: ProductCRUD = Depends(),
 ) -> ProductResponse:
-    return await crud.update(await crud.get_by_id(id=id), data)
+    return await crud.update(product, data)
 
 
 @router.delete(
@@ -72,9 +74,11 @@ async def update_product(
     summary="Delete a product.",
     status_code=status.HTTP_200_OK,
     response_model=Optional[ResponseMessage],
+    responses={404: {"model": ResponseMessage}},
 )
 async def delete_product(
-    id: UUID, crud: ProductCRUD = Depends()
+    product: Product = Depends(valid_product_id),
+    crud: ProductCRUD = Depends(),
 ) -> Optional[ResponseMessage]:
-    await crud.delete(await crud.get_by_id(id=id))
+    await crud.delete(product)
     return ResponseMessage(detail="Deleted successfully.")

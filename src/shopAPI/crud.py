@@ -45,12 +45,7 @@ class BaseCRUD(Generic[ModelType]):
         :param join_: The joins to make.
         :return: The model instance.
         """
-        db_obj = await self._one_or_none(self._where(self._query(join_), "id", id))
-        if not db_obj:
-            raise HTTPException(
-                status_code=404, detail=f"{self.model_class.__name__} {id} not found"
-            )
-        return db_obj
+        return await self._one_or_none(self._where(self._query(join_), "id", id))
 
     async def get_all(
         self, offset: int, limit: int, join_: set[str] | None = None
