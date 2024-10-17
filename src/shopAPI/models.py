@@ -92,20 +92,16 @@ class OrderStatus(str, enum.Enum):
 
 
 class OrderBase(SQLModel):
-    creation_date: datetime = Field(
-        default_factory=datetime.now,
-        **field_example(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-    )
-    status: OrderStatus = Field(
-        sa_column=Column(Enum(OrderStatus), nullable=False),
-        **field_example("created"),
-    )
-
     model_config = ConfigDict(extra="forbid")
 
 
 class Order(IdMixin, OrderBase, table=True):
     __tablename__ = "order"
+    creation_date: datetime = Field(default_factory=datetime.now)
+    status: OrderStatus = Field(
+        default=OrderStatus.created, sa_column=Column(Enum(OrderStatus), nullable=False)
+    )
+
     order_items: list["OrderItem"] = Relationship(
         sa_relationship_kwargs={"cascade": "all"}, back_populates="order"
     )
@@ -126,9 +122,11 @@ class OrderStatusUpdate(SQLModel):
 
 class OrderResponse(OrderBase):
     id: UUID
+    creation_date: datetime
+    status: OrderStatus
 
 
-class OrderResponseWithItems(OrderBase):
+class OrderResponseWithItems(OrderResponse):
     id: UUID
     order_items: list["OrderItemResponse"] | None = None
 
