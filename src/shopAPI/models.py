@@ -2,7 +2,7 @@ from datetime import datetime
 import enum
 from typing import Any, Dict
 from uuid import UUID
-from pydantic import ConfigDict
+from pydantic import ConfigDict, field_serializer
 from sqlmodel import Field, Relationship, SQLModel, Column, Enum
 from shopAPI.database import IdMixin
 
@@ -124,6 +124,10 @@ class OrderResponse(OrderBase):
     id: UUID
     creation_date: datetime
     status: OrderStatus
+
+    @field_serializer("creation_date", return_type=str, when_used="json")
+    def serialize_creation_date(self, creation_date: datetime):
+        return creation_date.strftime("%Y-%m-%d %H:%M:%S")
 
 
 class OrderResponseWithItems(OrderResponse):
