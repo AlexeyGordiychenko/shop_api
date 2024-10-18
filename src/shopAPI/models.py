@@ -46,8 +46,6 @@ class ProductBase(SQLModel):
     price: float = Field(nullable=False, **field_example(128.99))
     amount: int = Field(nullable=False, **field_example(100))
 
-    model_config = ConfigDict(extra="forbid")
-
 
 class Product(IdMixin, ProductBase, table=True):
     __tablename__ = "product"
@@ -56,11 +54,13 @@ class Product(IdMixin, ProductBase, table=True):
 
 class ProductCreate(ProductBase):
     pass
+    model_config = ConfigDict(extra="forbid")
 
 
 class ProductUpdate(ProductBase):
     # TODO check examples with https://fastapi.tiangolo.com/tutorial/schema-extra-example/#body-with-examples
     model_config = ConfigDict(
+        extra="forbid",
         json_schema_extra={
             "examples": [
                 {
@@ -70,7 +70,7 @@ class ProductUpdate(ProductBase):
                     "amount": 200,
                 }
             ]
-        }
+        },
     )
 
 
@@ -92,7 +92,7 @@ class OrderStatus(str, enum.Enum):
 
 
 class OrderBase(SQLModel):
-    model_config = ConfigDict(extra="forbid")
+    pass
 
 
 class Order(IdMixin, OrderBase, table=True):
@@ -114,10 +114,12 @@ class Order(IdMixin, OrderBase, table=True):
 
 class OrderCreate(OrderBase):
     order_items: list["OrderItemCreate"] = Field(min_length=1)
+    model_config = ConfigDict(extra="forbid")
 
 
 class OrderStatusUpdate(SQLModel):
     status: OrderStatus
+    model_config = ConfigDict(extra="forbid")
 
 
 class OrderResponse(OrderBase):
@@ -138,8 +140,6 @@ class OrderResponseWithItems(OrderResponse):
 class OrderItemBase(SQLModel):
     amount: int = Field(nullable=False, **field_example(5))
 
-    model_config = ConfigDict(extra="forbid")
-
 
 class OrderItem(IdMixin, OrderItemBase, table=True):
     __tablename__ = "order_item"
@@ -153,6 +153,7 @@ class OrderItem(IdMixin, OrderItemBase, table=True):
 
 class OrderItemCreate(OrderItemBase):
     product_id: UUID
+    model_config = ConfigDict(extra="forbid")
 
 
 class OrderItemResponse(OrderItemBase):
