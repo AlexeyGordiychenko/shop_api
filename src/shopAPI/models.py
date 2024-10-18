@@ -133,7 +133,6 @@ class OrderResponse(OrderBase):
 
 
 class OrderResponseWithItems(OrderResponse):
-    id: UUID
     order_items: list["OrderItemResponse"] | None = None
 
 
