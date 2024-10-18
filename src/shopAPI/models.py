@@ -2,7 +2,12 @@ from datetime import datetime
 import enum
 from typing import Any, Dict
 from uuid import UUID
-from pydantic import ConfigDict, field_serializer
+from pydantic import (
+    AliasChoices,
+    AliasPath,
+    ConfigDict,
+    field_serializer,
+)
 from sqlmodel import Field, Relationship, SQLModel, Column, Enum
 from shopAPI.database import IdMixin
 
@@ -136,6 +141,10 @@ class OrderResponseWithItems(OrderResponse):
     order_items: list["OrderItemResponse"] | None = None
 
 
+class OrderResponseWithItemsShort(OrderResponse):
+    order_items: list["OrderItemResponseShort"] | None = None
+
+
 class OrderItemBase(SQLModel):
     amount: int = Field(nullable=False, **field_example(5))
 
@@ -157,3 +166,11 @@ class OrderItemCreate(OrderItemBase):
 
 class OrderItemResponse(OrderItemBase):
     product: ProductResponseInOrderItem
+
+
+class OrderItemResponseShort(OrderItemBase):
+    product_id: UUID = Field(
+        schema_extra={
+            "validation_alias": AliasChoices("product_id", AliasPath("product", "id"))
+        }
+    )
