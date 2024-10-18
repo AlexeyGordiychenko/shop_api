@@ -6,6 +6,7 @@ from httpx import AsyncClient, ASGITransport
 
 from shopAPI.server import app
 import shopAPI.database as database
+import tests.utils as utils
 
 
 @pytest.fixture(scope="session")
@@ -43,3 +44,27 @@ def product_payloads(request: pytest.FixtureRequest) -> List[dict]:
         }
         for i in range(request.param)
     ]
+
+
+@pytest.fixture(scope="function")
+async def order_payloads(
+    client: AsyncClient, request: pytest.FixtureRequest, product_payloads: List[dict]
+) -> List[dict]:
+    await utils.create_entities(client, "products", product_payloads)
+    order_payloads = []
+    for _ in range(request.param):
+        selected_product_payloads = random.sample(
+            product_payloads, random.randint(1, len(product_payloads))
+        )
+        order_payloads.append(
+            {
+                "order_items": [
+                    {
+                        "product_id": product_payload["id"],
+                        "amount": random.randint(1, 1000),
+                    }
+                    for product_payload in selected_product_payloads
+                ]
+            }
+        )
+    return order_payloads
