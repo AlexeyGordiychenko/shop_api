@@ -40,7 +40,7 @@ def product_payloads(request: pytest.FixtureRequest) -> List[dict]:
             "name": f"test_name_{i}",
             "description": f"test_description_{i}",
             "price": round(random.uniform(0, 1000), 2),
-            "amount": random.randint(0, 1000),
+            "amount": random.randint(1000, 10000),
         }
         for i in range(request.param)
     ]
@@ -61,7 +61,9 @@ async def order_payloads(
                 "order_items": [
                     {
                         "product_id": product_payload["id"],
-                        "amount": random.randint(1, 1000),
+                        "amount": random.randint(
+                            1, max(1, product_payload["amount"] // request.param)
+                        ),
                     }
                     for product_payload in selected_product_payloads
                 ]
