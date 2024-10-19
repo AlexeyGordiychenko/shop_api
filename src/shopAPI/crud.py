@@ -124,7 +124,10 @@ class BaseCRUD(Generic[ModelType]):
         :param value: The value to filter by.
         :return: The filtered query.
         """
-        return query.where(getattr(self.model_class, field) == value)
+        if isinstance(value, (list, tuple)):
+            return query.where(getattr(self.model_class, field).in_(value))
+        else:
+            return query.where(getattr(self.model_class, field) == value)
 
     def _optional_join(self, query: Select, join_: set[str] | None = None) -> Select:
         """
