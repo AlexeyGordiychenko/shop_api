@@ -200,6 +200,16 @@ class OrderCRUD(BaseCRUD[Order]):
     def __init__(self, session: AsyncSession = Depends(get_session)):
         super().__init__(model=Order, session=session)
 
+    @Transactional()
+    async def create(self, model_create: ModelType) -> ModelType:
+        attributes = self.extract_attributes_from_schema(model_create)
+        model = self.model_class(**attributes)
+        self.session.add(model)
+        for order_item in model.order_items:
+            product = await self.session.get(Product, order_item.product_id)
+            product.amount -= order_item.amount
+        return model
+
     async def get_by_id(self, id: UUID) -> ModelType:
         return await super().get_by_id(id=id, join_={"order_item"})
 
