@@ -146,7 +146,7 @@ class OrderResponseWithItemsShort(OrderResponse):
 
 
 class OrderItemBase(SQLModel):
-    amount: int = Field(nullable=False, **field_example(5))
+    amount: int = Field(nullable=False, gt=0, **field_example(5))
 
 
 class OrderItem(IdMixin, OrderItemBase, table=True):
