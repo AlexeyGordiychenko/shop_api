@@ -31,8 +31,6 @@ class BaseCRUD(Generic[ModelType]):
         :return: The created object.
         """
         attributes = self.extract_attributes_from_schema(model_create)
-        if attributes is None:
-            attributes = {}
         model = self.model_class(**attributes)
         self.session.add(model)
         return model
