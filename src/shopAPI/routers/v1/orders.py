@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, Query, status
 
 from shopAPI.crud import OrderCRUD
-from shopAPI.dependencies import valid_order_id
+from shopAPI.dependencies import valid_order_contents, valid_order_id
 from shopAPI.models import (
     Order,
     OrderCreate,
@@ -24,10 +24,12 @@ router = APIRouter(
     summary="Create a new order.",
     status_code=status.HTTP_201_CREATED,
     response_model=OrderResponse,
-    responses={404: {"model": ResponseMessage}},
+    responses={404: {"model": ResponseMessage}, 400: {"model": ResponseMessage}},
 )
-async def create_order(data: OrderCreate, crud: OrderCRUD = Depends()) -> OrderResponse:
-    return await crud.create(data)
+async def create_order(
+    order: Order = Depends(valid_order_contents),
+) -> OrderResponse:
+    return order
 
 
 @router.get(
