@@ -59,6 +59,18 @@ class BaseCRUD(Generic[ModelType]):
         """
         return await self._all(self._query(join_).offset(offset).limit(limit))
 
+    async def get_all_by_ids(
+        self, ids: list[UUID], join_: set[str] | None = None
+    ) -> ModelType:
+        """
+        Returns the model instances matching the ids.
+
+        :param ids: The ids to match.
+        :param join_: The joins to make.
+        :return: The model instances.
+        """
+        return await self._all(self._where(self._query(join_), "id", ids))
+
     @Transactional()
     async def update(self, model: ModelType, model_update: ModelType) -> ModelType:
         """
