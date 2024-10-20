@@ -47,6 +47,21 @@ async def compare_db_product_to_payload(
     )
 
 
+async def compare_db_products_amount(
+    products_amount: dict, db_session: AsyncSession
+) -> None:
+    db_products = (
+        await db_session.scalars(
+            select(Product).where(
+                Product.id.in_([product_id for product_id in products_amount])
+            )
+        )
+    ).all()
+    assert len(db_products) == len(products_amount)
+    for db_product in db_products:
+        assert db_product.amount == products_amount[str(db_product.id)]
+
+
 async def create_orders(client: AsyncClient, order_payloads: List[dict]) -> None:
     for order_payload in order_payloads:
         response_create = await client.post("orders", json=order_payload)

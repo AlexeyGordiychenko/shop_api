@@ -68,3 +68,30 @@ async def test_patch_order_status(
     response_get = await client.get(f"orders/{order_payloads[1]['id']}")
     assert response_get.status_code == 200
     await utils.compare_orders(order_payloads[1], response_get.json())
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("product_payloads", [5, 1], indirect=True)
+@pytest.mark.parametrize("order_payloads", [1, 3], indirect=True)
+async def test_post_order_products_amount(
+    client: AsyncClient,
+    product_payloads: List[dict],
+    order_payloads: List[dict],
+    db_session: AsyncSession,
+) -> None:
+    products_amount = {product["id"]: product["amount"] for product in product_payloads}
+    for order_payload in order_payloads:
+        for item in order_payload["order_items"]:
+            products_amount[item["product_id"]] -= item["amount"]
+        await utils.create_orders(client, [order_payload])
+        await utils.compare_db_products_amount(products_amount, db_session)
+    order_payload = {
+        "order_items": [
+            {"product_id": product_id, "amount": amount}
+            for product_id, amount in products_amount.items()
+        ]
+    }
+    await utils.create_orders(client, [order_payload])
+    await utils.compare_db_products_amount(
+        products_amount.fromkeys(products_amount, 0), db_session
+    )
