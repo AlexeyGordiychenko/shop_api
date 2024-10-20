@@ -64,6 +64,15 @@ async def test_get_all_products_offset_limit(client: AsyncClient, params: dict) 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("product_payloads", [1], indirect=True)
+async def test_put_product_not_found(
+    client: AsyncClient, product_payloads: List[dict]
+) -> None:
+    response_delete = await client.put(f"products/{uuid7()}", json=product_payloads[0])
+    assert response_delete.status_code == 404
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("product_payloads", [1], indirect=True)
 async def test_put_product_incorrect_uuid(
     client: AsyncClient, product_payloads: List[dict]
 ) -> None:
