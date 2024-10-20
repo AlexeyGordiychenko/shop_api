@@ -57,6 +57,9 @@ async def test_get_all_orders_pagination(
 async def test_patch_order_status(
     client: AsyncClient, order_payloads: List[dict]
 ) -> None:
+    # Get two payloads, create two orders, use one payload to update the order
+    # with every possible status, then check that the other order's status is
+    # unchanged (just in case)
     await utils.create_orders(client, order_payloads)
     order_payload = order_payloads[0]
     for status in OrderStatus:
@@ -79,6 +82,12 @@ async def test_post_order_products_amount(
     order_payloads: List[dict],
     db_session: AsyncSession,
 ) -> None:
+    # Get product and order payloads
+    # Remember the initial product amounts
+    # Create an order for each payload, decrease the products amount and compare
+    # amounts to the DB after an order is created
+    # Final step - create an order with the remaining products amounts and check
+    # that products amounts are 0 in the DB
     products_amount = {product["id"]: product["amount"] for product in product_payloads}
     for order_payload in order_payloads:
         for item in order_payload["order_items"]:

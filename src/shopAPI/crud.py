@@ -185,10 +185,7 @@ class ProductCRUD(BaseCRUD[Product]):
     CRUD for the product model.
     """
 
-    def __init__(
-        self,
-        session: AsyncSession = Depends(get_session),
-    ):
+    def __init__(self, session: AsyncSession = Depends(get_session)):
         super().__init__(model=Product, session=session)
 
 
@@ -202,6 +199,13 @@ class OrderCRUD(BaseCRUD[Order]):
 
     @Transactional()
     async def create(self, model_create: ModelType) -> ModelType:
+        """
+        Creates a new order in the DB. Updates the products amount.
+
+        :param model_create: The order to create.
+        :return: The created order instance.
+        """
+
         attributes = self.extract_attributes_from_schema(model_create)
         model = self.model_class(**attributes)
         self.session.add(model)
@@ -211,9 +215,22 @@ class OrderCRUD(BaseCRUD[Order]):
         return model
 
     async def get_by_id(self, id: UUID) -> ModelType:
+        """
+        Returns the order instance with order items matching the id.
+
+        :param id: The id to match.
+        :return: The order instance.
+        """
         return await super().get_by_id(id=id, join_={"order_item"})
 
     async def get_all(self, offset: int, limit: int) -> List[ModelType]:
+        """
+        Returns all order instances with order items.
+
+        :param offset: The offset to start from.
+        :param limit: The number of items to return.
+        :return: The list of order instances.
+        """
         return await super().get_all(offset=offset, limit=limit, join_={"order_item"})
 
     def _join_order_item(self, query: Select) -> Select:

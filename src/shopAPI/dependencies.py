@@ -8,6 +8,13 @@ async def valid_product_id(
     id: UUID,
     crud: ProductCRUD = Depends(),
 ) -> Product:
+    """
+    Returns the product instance matching the id if it exists.
+    Raises a 404 if the product does not exist.
+
+    :param id: The id to match.
+    :return: The product instance.
+    """
     product = await crud.get_by_id(id=id)
     if not product:
         raise HTTPException(status_code=404, detail=f"Product {id} not found.")
@@ -19,6 +26,13 @@ async def valid_order_id(
     id: UUID,
     crud: OrderCRUD = Depends(),
 ) -> Order:
+    """
+    Returns the order instance matching the id if it exists.
+    Raises a 404 if the order does not exist.
+
+    :param id: The id to match.
+    :return: The order instance.
+    """
     order = await crud.get_by_id(id=id)
     if not order:
         raise HTTPException(status_code=404, detail=f"Order {id} not found.")
@@ -31,6 +45,14 @@ async def valid_order_contents(
     order_crud: OrderCRUD = Depends(),
     product_crud: ProductCRUD = Depends(),
 ) -> Order:
+    """
+    Validates the order's contents.
+    Raises a 404 if the product does not exist.
+    Raises a 400 if there is not enough stock or if there are duplicate product ids.
+
+    :param data: The order to validate.
+    :return: The order instance.
+    """
     order_items_ids: list[UUID] = [item.product_id for item in data.order_items]
     if len(order_items_ids) != len(set(order_items_ids)):
         raise HTTPException(

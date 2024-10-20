@@ -18,6 +18,10 @@ from shopAPI.config import settings
 
 
 class IdMixin(SQLModel):
+    """
+    Mixin for ID fields in models.
+    """
+
     id: UUID = Field(
         default_factory=uuid7,
         primary_key=True,
@@ -27,6 +31,11 @@ class IdMixin(SQLModel):
 
 
 class Transactional:
+    """
+    Decorator for async database transactions.
+    Commits the transaction on success or rolls back on exception.
+    """
+
     def __call__(self, function):
         @wraps(function)
         async def decorator(*args, **kwargs):

@@ -89,6 +89,7 @@ async def test_put_product_incorrect_uuid(
 async def test_put_product_invalid_field(
     client: AsyncClient, product_payloads: List[dict], invalid_field: dict
 ) -> None:
+    # Get two payloads, use one to create and the other to update
     updated_product = product_payloads.pop()
     updated_product.update(invalid_field)
     await utils.create_entities(client, "products", product_payloads)
@@ -113,6 +114,7 @@ async def test_put_product_invalid_field(
 async def test_put_product_fields_absence(
     client: AsyncClient, product_payloads: List[dict], field: str
 ) -> None:
+    # Get two payloads, use one to create and the other to update
     updated_product = product_payloads.pop()
     updated_product.pop(field)
     await utils.create_entities(client, "products", product_payloads)

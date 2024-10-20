@@ -56,6 +56,7 @@ async def test_put_product(
     product_payloads: List[dict],
     db_session: AsyncSession,
 ) -> None:
+    # Get two payloads, use one to create and the other to update
     updated_product = product_payloads.pop()
     await utils.create_entities(client, "products", product_payloads)
     created_product = product_payloads[0]
