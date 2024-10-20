@@ -5,7 +5,6 @@ from shopAPI.crud import OrderCRUD
 from shopAPI.dependencies import valid_order_contents, valid_order_id
 from shopAPI.models import (
     Order,
-    OrderCreate,
     OrderResponse,
     OrderResponseWithItems,
     OrderStatus,
