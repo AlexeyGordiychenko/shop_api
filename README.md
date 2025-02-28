@@ -1,3 +1,14 @@
+## About
+
+This is a simple API for a basic shop.
+
+It allows you to:
+
+- create, read, update and delete products
+- create, read, and update order statuses
+- track the available stock of products
+
+
 ## Technology Stack
 
 - ⚡ [**FastAPI**](https://fastapi.tiangolo.com) for the Python backend API.
